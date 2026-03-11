@@ -1,0 +1,19 @@
+{
+	"name": "tweeter-server",
+	"version": "1.0.0",
+	"description": "",
+	"license": "ISC",
+	"author": "",
+	"type": "commonjs",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"clean": "rmdir -Recurse dist",
+		"compile": "npm run clean && tsc"
+	},
+	"dependencies": {
+		"tweeter-shared": "file:../tweeter-shared",
+		"date-fns": "^3.3.1",
+    	"uuid": "^9.0.1"
+	}
+}
