@@ -1,0 +1,61 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up SAM CLI
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Build tweeter-shared
+        working-directory: tweeter-shared
+        run: |
+          npm install
+          npm run build
+
+      - name: Install tweeter-server dependencies
+        working-directory: tweeter-server
+        run: npm install
+
+      - name: Compile tweeter-server TypeScript
+        working-directory: tweeter-server
+        run: |
+          rm -rf dist
+          npx tsc
+
+      - name: Set up Lambda layer
+        working-directory: tweeter-server
+        run: |
+          mkdir -p layer/nodejs
+          cp -r node_modules layer/nodejs/
+
+      - name: SAM build
+        working-directory: tweeter-server
+        run: sam build
+
+      - name: SAM deploy
+        working-directory: tweeter-server
+        run: sam deploy --no-confirm-changeset
