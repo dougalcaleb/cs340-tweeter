@@ -83,6 +83,8 @@ Resources:
         paths:
           /user/get:
             post:
+              summary: Get user
+              description: Returns the profile information for a user by their alias.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -96,6 +98,8 @@ Resources:
 
           /user/register:
             post:
+              summary: Register user
+              description: Creates a new user account and returns the new user along with an auth token.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -109,6 +113,8 @@ Resources:
 
           /user/login:
             post:
+              summary: Login
+              description: Authenticates a user with their alias and password and returns an auth token.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -122,6 +128,8 @@ Resources:
 
           /user/logout:
             post:
+              summary: Logout
+              description: Invalidates the current auth token, ending the user's session.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -135,6 +143,8 @@ Resources:
 
           /follow/status:
             post:
+              summary: Check follow status
+              description: Returns whether the authenticated user is currently following a given user.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -148,6 +158,8 @@ Resources:
 
           /follow/followers/list:
             post:
+              summary: List followers
+              description: Returns a paginated list of users who follow the specified user.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -161,6 +173,8 @@ Resources:
 
           /follow/followees/list:
             post:
+              summary: List followees
+              description: Returns a paginated list of users that the specified user follows.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -174,6 +188,8 @@ Resources:
 
           /follow/followers/count:
             post:
+              summary: Get follower count
+              description: Returns the total number of followers for the specified user.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -187,6 +203,8 @@ Resources:
 
           /follow/followees/count:
             post:
+              summary: Get followee count
+              description: Returns the total number of users that the specified user follows.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -200,6 +218,8 @@ Resources:
 
           /follow/create:
             post:
+              summary: Follow user
+              description: Creates a follow relationship so the authenticated user follows the specified user.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -213,6 +233,8 @@ Resources:
 
           /follow/delete:
             post:
+              summary: Unfollow user
+              description: Removes the follow relationship so the authenticated user no longer follows the specified user.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -226,6 +248,8 @@ Resources:
 
           /status/story/list:
             post:
+              summary: List story
+              description: Returns a paginated list of statuses posted by the specified user (their story).
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -239,6 +263,8 @@ Resources:
 
           /status/feed/list:
             post:
+              summary: List feed
+              description: Returns a paginated list of statuses from all users that the authenticated user follows.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -252,6 +278,8 @@ Resources:
 
           /status/create:
             post:
+              summary: Post status
+              description: Creates a new status (tweet) on behalf of the authenticated user.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
