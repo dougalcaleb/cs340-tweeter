@@ -100,7 +100,7 @@ const Register = () => {
 
 	const switchAuthenticationMethodFactory = () => 
 		<div className="mb-3">
-			Algready registered? <Link to="/login">Sign in</Link>
+			Already registered? <Link to="/login">Sign in</Link>
 		</div>
 
 	return (
