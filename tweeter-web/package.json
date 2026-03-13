@@ -17,6 +17,7 @@
 		"react-dom": "^18.2.0",
 		"react-infinite-scroll-component": "^6.1.0",
 		"react-router-dom": "^6.22.2",
+		"isomorphic-fetch": "^3.0.0",
 		"tweeter-shared": "file:../tweeter-shared",
 		"typescript": "^4.9.5",
 		"vite-plugin-commonjs": "^0.8.2",
@@ -27,7 +28,8 @@
 		"build": "tsc && vite build",
 		"serve": "vite preview",
 		"reload": "npm run build && npm run serve",
-		"test": "jest --passWithNoTests"
+		"test": "jest --passWithNoTests",
+		"test:all": "powershell -ExecutionPolicy Bypass -File ./scripts/run-tests.ps1"
 	},
 	"jest": {
 		"verbose": true,

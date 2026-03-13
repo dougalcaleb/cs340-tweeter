@@ -7,3 +7,7 @@ interface ImportMetaEnv {
 interface ImportMeta {
 	readonly env: ImportMetaEnv;
 }
+
+declare global {
+	var __TWEETER_API_BASE_URL__: string | undefined;
+}

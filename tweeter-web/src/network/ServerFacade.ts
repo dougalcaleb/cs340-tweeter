@@ -34,16 +34,27 @@ interface StatusPageResponse extends TweeterResponse {
 }
 
 export class ServerFacade {
-	private static readonly apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-
 	private readonly clientCommunicator: ClientCommunicator;
 
-	public constructor() {
-		if (!ServerFacade.apiBaseUrl) {
+	public constructor(apiBaseUrl?: string) {
+		const nodeEnvBaseUrl =
+			typeof globalThis === "object" && "process" in globalThis
+				? (globalThis as {process?: {env?: Record<string, string | undefined>}}).process?.env
+					?.VITE_API_BASE_URL
+				: undefined;
+
+		const runtimeBaseUrl =
+			apiBaseUrl ??
+			(typeof globalThis === "object" && "__TWEETER_API_BASE_URL__" in globalThis
+				? (globalThis as {__TWEETER_API_BASE_URL__?: string}).__TWEETER_API_BASE_URL__
+				: undefined) ??
+			nodeEnvBaseUrl;
+
+		if (!runtimeBaseUrl) {
 			throw new Error("VITE_API_BASE_URL is not set");
 		}
 
-		this.clientCommunicator = new ClientCommunicator(ServerFacade.apiBaseUrl);
+		this.clientCommunicator = new ClientCommunicator(runtimeBaseUrl);
 	}
 
 	public async getUser(alias: string): Promise<User | null> {
