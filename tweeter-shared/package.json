@@ -2,12 +2,12 @@
   "name": "tweeter-shared",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc",
     "preview": "vite preview"
   },
   "devDependencies": {

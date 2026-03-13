@@ -33,7 +33,7 @@
 		"verbose": true,
 		"testEnvironment": "jsdom",
 		"moduleNameMapper": {
-			"^tweeter-shared$": "<rootDir>/../tweeter-shared/dist/tweeter-shared.js",
+			"^tweeter-shared$": "<rootDir>/../tweeter-shared/dist/index.js",
 			"\\.(css|less)$": "<rootDir>/test/__mocks__/styleMock.js"
 		},
 		"testMatch": [
