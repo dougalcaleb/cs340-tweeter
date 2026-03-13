@@ -50,7 +50,8 @@ jobs:
         working-directory: tweeter-server
         run: |
           mkdir -p layer/nodejs
-          cp -r node_modules layer/nodejs/
+          # -L dereferences symlinks so local file deps (like tweeter-shared) are copied as real files.
+          cp -rL node_modules layer/nodejs/
 
       - name: SAM build
         working-directory: tweeter-server
