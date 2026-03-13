@@ -48,8 +48,9 @@ export class ServerFacade {
 
 	public async getUser(alias: string): Promise<User | null> {
 		const response = await this.clientCommunicator.doPost<{alias: string}, UserResponse>({alias}, "/user/get");
+		const user = this.requireSuccess(response, response.user, "get user");
 
-		return this.requireSuccess(response, response.user, "get user");
+		return this.toUser(user);
 	}
 
 	public async registerUser(
@@ -72,16 +73,16 @@ export class ServerFacade {
 			AuthUserResponse
 		>({firstName, lastName, alias, password, userImageBase64, fileExtension}, "/user/register");
 
-		const user = this.requireSuccess(response, response.user, "register user");
-		const authToken = this.requireSuccess(response, response.authToken, "register user");
+		const user = this.toRequiredUser(this.requireSuccess(response, response.user, "register user"), "register user");
+		const authToken = this.toRequiredAuthToken(this.requireSuccess(response, response.authToken, "register user"), "register user");
 		return [user, authToken];
 	}
 
 	public async loginUser(alias: string, password: string): Promise<[User, AuthToken]> {
 		const response = await this.clientCommunicator.doPost<{alias: string; password: string}, AuthUserResponse>({alias, password}, "/user/login");
 
-		const user = this.requireSuccess(response, response.user, "login user");
-		const authToken = this.requireSuccess(response, response.authToken, "login user");
+		const user = this.toRequiredUser(this.requireSuccess(response, response.user, "login user"), "login user");
+		const authToken = this.toRequiredAuthToken(this.requireSuccess(response, response.authToken, "login user"), "login user");
 		return [user, authToken];
 	}
 
@@ -106,7 +107,7 @@ export class ServerFacade {
 			"/follow/followers/list",
 		);
 
-		const items = this.requireSuccess(response, response.items, "get followers");
+		const items = this.toUsers(this.requireSuccess(response, response.items, "get followers"));
 		return [items, response.hasMore];
 	}
 
@@ -116,7 +117,7 @@ export class ServerFacade {
 			"/follow/followees/list",
 		);
 
-		const items = this.requireSuccess(response, response.items, "get followees");
+		const items = this.toUsers(this.requireSuccess(response, response.items, "get followees"));
 		return [items, response.hasMore];
 	}
 
@@ -150,7 +151,7 @@ export class ServerFacade {
 			"/status/story/list",
 		);
 
-		const items = this.requireSuccess(response, response.items, "get story items");
+		const items = this.toStatuses(this.requireSuccess(response, response.items, "get story items"));
 		return [items, response.hasMore];
 	}
 
@@ -160,7 +161,7 @@ export class ServerFacade {
 			"/status/feed/list",
 		);
 
-		const items = this.requireSuccess(response, response.items, "get feed items");
+		const items = this.toStatuses(this.requireSuccess(response, response.items, "get feed items"));
 		return [items, response.hasMore];
 	}
 
@@ -176,5 +177,71 @@ export class ServerFacade {
 		}
 
 		return data;
+	}
+
+	private toRequiredUser(payload: User | null, operation: string): User {
+		const user = this.toUser(payload);
+		if (user == null) {
+			throw new Error(`Unable to ${operation}`);
+		}
+
+		return user;
+	}
+
+	private toRequiredAuthToken(payload: AuthToken | null, operation: string): AuthToken {
+		const authToken = this.toAuthToken(payload);
+		if (authToken == null) {
+			throw new Error(`Unable to ${operation}`);
+		}
+
+		return authToken;
+	}
+
+	private toUser(payload: User | null): User | null {
+		if (payload == null) {
+			return null;
+		}
+
+		if (payload instanceof User) {
+			return payload;
+		}
+
+		return User.fromJson(JSON.stringify(payload));
+	}
+
+	private toUsers(payload: User[]): User[] {
+		return payload
+			.map((user) => this.toUser(user))
+			.filter((user): user is User => user !== null);
+	}
+
+	private toAuthToken(payload: AuthToken | null): AuthToken | null {
+		if (payload == null) {
+			return null;
+		}
+
+		if (payload instanceof AuthToken) {
+			return payload;
+		}
+
+		return AuthToken.fromJson(JSON.stringify(payload));
+	}
+
+	private toStatus(payload: Status | null): Status | null {
+		if (payload == null) {
+			return null;
+		}
+
+		if (payload instanceof Status) {
+			return payload;
+		}
+
+		return Status.fromJson(JSON.stringify(payload));
+	}
+
+	private toStatuses(payload: Status[]): Status[] {
+		return payload
+			.map((status) => this.toStatus(status))
+			.filter((status): status is Status => status !== null);
 	}
 }
