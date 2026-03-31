@@ -20,3 +20,17 @@ Rebuild either module of the project (tweeter-shared or tweeter-web) by running 
 ## Running the Project
 
 Run the project by running 'npm start' from within the 'tweeter-web' folder.
+
+## Backend Milestone Workflow
+
+1. Build shared package:
+	- `cd tweeter-shared`
+	- `npm run build`
+1. Compile backend:
+	- `cd ../tweeter-server`
+	- `npm run compile`
+1. Deploy backend with SAM:
+	- `sam build`
+	- `sam deploy`
+1. Seed deterministic milestone data (>10 tab items):
+	- `npm run seed`

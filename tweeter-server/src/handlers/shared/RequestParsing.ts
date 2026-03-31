@@ -14,6 +14,10 @@ export const getRequiredString = (request: Record<string, unknown>, fieldName: s
 	return value;
 };
 
+export const getRequiredAuthToken = (request: Record<string, unknown>): string => {
+	return getRequiredString(request, "authToken");
+};
+
 export const getOptionalNumber = (request: Record<string, unknown>, fieldName: string, defaultValue: number): number => {
 	const value = request[fieldName];
 	if (typeof value === "number" && Number.isFinite(value)) {

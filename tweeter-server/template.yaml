@@ -10,6 +10,15 @@ Globals:
       - !Ref tweeterLayer
     Timeout: 30
     MemorySize: 128
+    Environment:
+      Variables:
+        USER_TABLE_NAME: tweeter-user
+        AUTH_TOKEN_TABLE_NAME: tweeter-auth-token
+        FOLLOW_TABLE_NAME: tweeter-follow
+        STATUS_TABLE_NAME: tweeter-status
+        FEED_TABLE_NAME: tweeter-feed
+        USER_IMAGE_BUCKET_NAME: !Ref tweeterUserImageBucket
+        AUTH_TOKEN_TTL_SECONDS: 3600
 
 Metadata:
   x-common-policies: &commonPolicies
@@ -501,6 +510,26 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub tweeter-user-images-${AWS::AccountId}-${AWS::Region}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        IgnorePublicAcls: false
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+
+  tweeterUserImageBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref tweeterUserImageBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub arn:aws:s3:::${tweeterUserImageBucket}/image/*
 
   tweeterUserTable:
     Type: AWS::DynamoDB::Table

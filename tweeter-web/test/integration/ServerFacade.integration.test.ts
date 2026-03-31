@@ -1,5 +1,6 @@
 import "isomorphic-fetch";
 
+import {AuthToken} from "tweeter-shared";
 import {ServerFacade} from "../../src/network/ServerFacade";
 
 const apiBaseUrl =
@@ -10,9 +11,11 @@ const runIntegration = apiBaseUrl ? describe : describe.skip;
 
 runIntegration("ServerFacade integration", () => {
 	let serverFacade: ServerFacade;
+	let authToken: AuthToken;
 
 	beforeAll(() => {
 		serverFacade = new ServerFacade(apiBaseUrl);
+		authToken = new AuthToken("integration-test-token", Date.now());
 	});
 
 	it("register returns a user and auth token", async () => {
@@ -33,7 +36,7 @@ runIntegration("ServerFacade integration", () => {
 	});
 
 	it("getFollowers returns users and pagination state", async () => {
-		const [followers, hasMore] = await serverFacade.getFollowers("@allen", 5, null);
+		const [followers, hasMore] = await serverFacade.getFollowers(authToken, "@allen", 5, null);
 
 		expect(Array.isArray(followers)).toBe(true);
 		expect(followers.length).toBeGreaterThan(0);
@@ -42,7 +45,7 @@ runIntegration("ServerFacade integration", () => {
 	});
 
 	it("getFollowerCount returns a positive number", async () => {
-		const count = await serverFacade.getFollowerCount("@allen");
+		const count = await serverFacade.getFollowerCount(authToken, "@allen");
 
 		expect(typeof count).toBe("number");
 		expect(count).toBeGreaterThan(0);

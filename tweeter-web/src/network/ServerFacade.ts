@@ -57,8 +57,11 @@ export class ServerFacade {
 		this.clientCommunicator = new ClientCommunicator(runtimeBaseUrl);
 	}
 
-	public async getUser(alias: string): Promise<User | null> {
-		const response = await this.clientCommunicator.doPost<{alias: string}, UserResponse>({alias}, "/user/get");
+	public async getUser(authToken: AuthToken, alias: string): Promise<User | null> {
+		const response = await this.clientCommunicator.doPost<{authToken: string; alias: string}, UserResponse>(
+			{authToken: authToken.token, alias},
+			"/user/get",
+		);
 		const user = this.requireSuccess(response, response.user, "get user");
 
 		return this.toUser(user);
@@ -103,18 +106,21 @@ export class ServerFacade {
 		this.requireSuccess(response, true, "logout user");
 	}
 
-	public async isFollower(user: User, selectedUser: User): Promise<boolean> {
-		const response = await this.clientCommunicator.doPost<{user: User; selectedUser: User}, IsFollowerResponse>(
-			{user, selectedUser},
+	public async isFollower(authToken: AuthToken, user: User, selectedUser: User): Promise<boolean> {
+		const response = await this.clientCommunicator.doPost<{authToken: string; user: User; selectedUser: User}, IsFollowerResponse>(
+			{authToken: authToken.token, user, selectedUser},
 			"/follow/status",
 		);
 
 		return this.requireSuccess(response, response.isFollower, "check follower status");
 	}
 
-	public async getFollowers(userAlias: string, pageSize: number, lastItem: User | null): Promise<[User[], boolean]> {
-		const response = await this.clientCommunicator.doPost<{userAlias: string; pageSize: number; lastItem: User | null}, UserPageResponse>(
-			{userAlias, pageSize, lastItem},
+	public async getFollowers(authToken: AuthToken, userAlias: string, pageSize: number, lastItem: User | null): Promise<[User[], boolean]> {
+		const response = await this.clientCommunicator.doPost<
+			{authToken: string; userAlias: string; pageSize: number; lastItem: User | null},
+			UserPageResponse
+		>(
+			{authToken: authToken.token, userAlias, pageSize, lastItem},
 			"/follow/followers/list",
 		);
 
@@ -122,9 +128,12 @@ export class ServerFacade {
 		return [items, response.hasMore];
 	}
 
-	public async getFollowees(userAlias: string, pageSize: number, lastItem: User | null): Promise<[User[], boolean]> {
-		const response = await this.clientCommunicator.doPost<{userAlias: string; pageSize: number; lastItem: User | null}, UserPageResponse>(
-			{userAlias, pageSize, lastItem},
+	public async getFollowees(authToken: AuthToken, userAlias: string, pageSize: number, lastItem: User | null): Promise<[User[], boolean]> {
+		const response = await this.clientCommunicator.doPost<
+			{authToken: string; userAlias: string; pageSize: number; lastItem: User | null},
+			UserPageResponse
+		>(
+			{authToken: authToken.token, userAlias, pageSize, lastItem},
 			"/follow/followees/list",
 		);
 
@@ -132,33 +141,48 @@ export class ServerFacade {
 		return [items, response.hasMore];
 	}
 
-	public async getFollowerCount(userAlias: string): Promise<number> {
-		const response = await this.clientCommunicator.doPost<{userAlias: string}, CountResponse>({userAlias}, "/follow/followers/count");
+	public async getFollowerCount(authToken: AuthToken, userAlias: string): Promise<number> {
+		const response = await this.clientCommunicator.doPost<{authToken: string; userAlias: string}, CountResponse>(
+			{authToken: authToken.token, userAlias},
+			"/follow/followers/count",
+		);
 
 		return this.requireSuccess(response, response.count, "get followers count");
 	}
 
-	public async getFolloweeCount(userAlias: string): Promise<number> {
-		const response = await this.clientCommunicator.doPost<{userAlias: string}, CountResponse>({userAlias}, "/follow/followees/count");
+	public async getFolloweeCount(authToken: AuthToken, userAlias: string): Promise<number> {
+		const response = await this.clientCommunicator.doPost<{authToken: string; userAlias: string}, CountResponse>(
+			{authToken: authToken.token, userAlias},
+			"/follow/followees/count",
+		);
 
 		return this.requireSuccess(response, response.count, "get followees count");
 	}
 
-	public async follow(userToFollow: User): Promise<void> {
-		const response = await this.clientCommunicator.doPost<{userToFollow: User}, TweeterResponse>({userToFollow}, "/follow/create");
+	public async follow(authToken: AuthToken, userToFollow: User): Promise<void> {
+		const response = await this.clientCommunicator.doPost<{authToken: string; userToFollow: User}, TweeterResponse>(
+			{authToken: authToken.token, userToFollow},
+			"/follow/create",
+		);
 
 		this.requireSuccess(response, true, "follow user");
 	}
 
-	public async unfollow(userToUnfollow: User): Promise<void> {
-		const response = await this.clientCommunicator.doPost<{userToUnfollow: User}, TweeterResponse>({userToUnfollow}, "/follow/delete");
+	public async unfollow(authToken: AuthToken, userToUnfollow: User): Promise<void> {
+		const response = await this.clientCommunicator.doPost<{authToken: string; userToUnfollow: User}, TweeterResponse>(
+			{authToken: authToken.token, userToUnfollow},
+			"/follow/delete",
+		);
 
 		this.requireSuccess(response, true, "unfollow user");
 	}
 
-	public async getStoryItems(userAlias: string, pageSize: number, lastItem: Status | null): Promise<[Status[], boolean]> {
-		const response = await this.clientCommunicator.doPost<{userAlias: string; pageSize: number; lastItem: Status | null}, StatusPageResponse>(
-			{userAlias, pageSize, lastItem},
+	public async getStoryItems(authToken: AuthToken, userAlias: string, pageSize: number, lastItem: Status | null): Promise<[Status[], boolean]> {
+		const response = await this.clientCommunicator.doPost<
+			{authToken: string; userAlias: string; pageSize: number; lastItem: Status | null},
+			StatusPageResponse
+		>(
+			{authToken: authToken.token, userAlias, pageSize, lastItem},
 			"/status/story/list",
 		);
 
@@ -166,9 +190,12 @@ export class ServerFacade {
 		return [items, response.hasMore];
 	}
 
-	public async getFeedItems(userAlias: string, pageSize: number, lastItem: Status | null): Promise<[Status[], boolean]> {
-		const response = await this.clientCommunicator.doPost<{userAlias: string; pageSize: number; lastItem: Status | null}, StatusPageResponse>(
-			{userAlias, pageSize, lastItem},
+	public async getFeedItems(authToken: AuthToken, userAlias: string, pageSize: number, lastItem: Status | null): Promise<[Status[], boolean]> {
+		const response = await this.clientCommunicator.doPost<
+			{authToken: string; userAlias: string; pageSize: number; lastItem: Status | null},
+			StatusPageResponse
+		>(
+			{authToken: authToken.token, userAlias, pageSize, lastItem},
 			"/status/feed/list",
 		);
 
@@ -176,8 +203,11 @@ export class ServerFacade {
 		return [items, response.hasMore];
 	}
 
-	public async postStatus(newStatus: Status): Promise<void> {
-		const response = await this.clientCommunicator.doPost<{newStatus: Status}, TweeterResponse>({newStatus}, "/status/create");
+	public async postStatus(authToken: AuthToken, newStatus: Status): Promise<void> {
+		const response = await this.clientCommunicator.doPost<{authToken: string; newStatus: Status}, TweeterResponse>(
+			{authToken: authToken.token, newStatus},
+			"/status/create",
+		);
 
 		this.requireSuccess(response, true, "post status");
 	}

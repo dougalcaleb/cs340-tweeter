@@ -11,3 +11,5 @@ interface ImportMeta {
 declare global {
 	var __TWEETER_API_BASE_URL__: string | undefined;
 }
+
+export {};

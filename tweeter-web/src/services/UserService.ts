@@ -5,7 +5,7 @@ import { Service } from "./Service";
 export class UserService extends Service
 {
 	public async getUser(authToken: AuthToken, alias: string): Promise<User | null> {
-		return this.serverFacade.getUser(alias);
+		return this.serverFacade.getUser(authToken, alias);
 	};
 
 	public async loginUser(alias: string, password: string): Promise<[User, AuthToken]> {
@@ -37,6 +37,6 @@ export class UserService extends Service
 	}
 
 	public async isFollower(authToken: AuthToken, user: User, selectedUser: User): Promise<boolean> {
-		return this.serverFacade.isFollower(user, selectedUser);
+		return this.serverFacade.isFollower(authToken, user, selectedUser);
 	}
 }
