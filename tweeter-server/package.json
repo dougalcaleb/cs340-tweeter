@@ -10,7 +10,8 @@
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"clean": "powershell -Command \"if (Test-Path dist) { Remove-Item -Recurse -Force dist }\"",
 		"compile": "npm run clean && tsc",
-		"seed": "npm run compile && node dist/scripts/SeedData.js"
+		"seed": "npm run compile && node dist/scripts/SeedData.js",
+		"seed:large-followers": "npm run compile && node dist/scripts/SeedLargeFollowers.js"
 	},
 	"dependencies": {
 		"@aws-sdk/client-sqs": "^3.1021.0",
