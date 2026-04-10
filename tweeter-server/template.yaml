@@ -540,13 +540,13 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: tweeter-post-status-queue
-      VisibilityTimeout: 30
+      VisibilityTimeout: 360
 
   tweeterUpdateFeedQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: tweeter-update-feed-queue
-      VisibilityTimeout: 30
+      VisibilityTimeout: 120
 
   tweeterUserImageBucket:
     Type: AWS::S3::Bucket
