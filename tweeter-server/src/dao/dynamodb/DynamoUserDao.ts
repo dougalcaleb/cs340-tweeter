@@ -105,7 +105,7 @@ export class DynamoUserDao implements UserDao {
 			? `SET ${attributeName} = if_not_exists(${attributeName}, :zero) + :delta`
 			: `ADD ${attributeName} :delta`;
 		const conditionExpression = delta < 0
-			? `attribute_exists(alias) AND if_not_exists(${attributeName}, :zero) >= :minCurrent`
+			? `attribute_exists(alias) AND attribute_exists(${attributeName}) AND ${attributeName} >= :minCurrent`
 			: "attribute_exists(alias)";
 		const expressionAttributeValues = delta < 0
 			? {
