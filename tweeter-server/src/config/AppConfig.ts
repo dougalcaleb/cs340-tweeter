@@ -33,5 +33,7 @@ export const AppConfig = {
 	statusTableName: getEnv("STATUS_TABLE_NAME", "tweeter-status"),
 	feedTableName: getEnv("FEED_TABLE_NAME", "tweeter-feed"),
 	userImageBucketName: getEnv("USER_IMAGE_BUCKET_NAME", "tweeter-user-images"),
+	postStatusQueueUrl: getEnv("POST_STATUS_QUEUE_URL", ""),
+	updateFeedQueueUrl: getEnv("UPDATE_FEED_QUEUE_URL", ""),
 	authTokenTtlSeconds: getEnvNumber("AUTH_TOKEN_TTL_SECONDS", 60 * 60),
 };

@@ -19,6 +19,8 @@ Globals:
         FEED_TABLE_NAME: tweeter-feed
         USER_IMAGE_BUCKET_NAME: !Ref tweeterUserImageBucket
         AUTH_TOKEN_TTL_SECONDS: 3600
+        POST_STATUS_QUEUE_URL: !Ref tweeterPostStatusQueue
+        UPDATE_FEED_QUEUE_URL: !Ref tweeterUpdateFeedQueue
 
 Metadata:
   x-common-policies: &commonPolicies
@@ -506,6 +508,46 @@ Resources:
             Path: /status/create
             Method: POST
 
+  tweeterPostUpdateFeedMessagesHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: tweeter-post-update-feed-messages-handler
+      Handler: handlers/statuses/PostUpdateFeedMessagesHandler.postUpdateFeedMessagesHandler
+      Policies: *commonPolicies
+      Timeout: 300
+      Events:
+        PostStatusQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt tweeterPostStatusQueue.Arn
+            BatchSize: 10
+
+  tweeterUpdateFeedsHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: tweeter-update-feeds-handler
+      Handler: handlers/statuses/UpdateFeedsHandler.updateFeedsHandler
+      Policies: *commonPolicies
+      Timeout: 60
+      Events:
+        UpdateFeedQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt tweeterUpdateFeedQueue.Arn
+            BatchSize: 10
+
+  tweeterPostStatusQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: tweeter-post-status-queue
+      VisibilityTimeout: 30
+
+  tweeterUpdateFeedQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: tweeter-update-feed-queue
+      VisibilityTimeout: 30
+
   tweeterUserImageBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -647,3 +689,11 @@ Outputs:
   tweeterUserImageBucketName:
     Description: S3 bucket used for user images
     Value: !Ref tweeterUserImageBucket
+
+  tweeterPostStatusQueueUrl:
+    Description: SQS queue URL used for post status fan-out messages
+    Value: !Ref tweeterPostStatusQueue
+
+  tweeterUpdateFeedQueueUrl:
+    Description: SQS queue URL used for feed update work messages
+    Value: !Ref tweeterUpdateFeedQueue

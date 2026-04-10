@@ -1,21 +1,22 @@
+import {SendMessageCommand, SQSClient} from "@aws-sdk/client-sqs";
 import {Status} from "tweeter-shared";
+import {AppConfig} from "../config/AppConfig";
 import {DaoFactory, daoFactory} from "../dao/DaoFactory";
 import {FeedDao} from "../dao/interfaces/FeedDao";
-import {FollowDao} from "../dao/interfaces/FollowDao";
 import {StatusDao} from "../dao/interfaces/StatusDao";
 import {AuthorizationService} from "./AuthorizationService";
 
 export class StatusService {
 	private readonly statusDao: StatusDao;
 	private readonly feedDao: FeedDao;
-	private readonly followDao: FollowDao;
 	private readonly authorizationService: AuthorizationService;
+	private readonly sqsClient: SQSClient;
 
 	public constructor(factory: DaoFactory = daoFactory) {
 		this.statusDao = factory.createStatusDao();
 		this.feedDao = factory.createFeedDao();
-		this.followDao = factory.createFollowDao();
 		this.authorizationService = new AuthorizationService(factory);
+		this.sqsClient = new SQSClient({region: AppConfig.region});
 	}
 
 	public async listStoryItems(authToken: string, userAlias: string, pageSize: number, lastItem: Status | null): Promise<[Status[], boolean]> {
@@ -47,26 +48,20 @@ export class StatusService {
 		}
 
 		await this.statusDao.putStatus(newStatus);
-		const followerAliases = await this.getAllFollowerAliases(authorAlias);
-		await this.feedDao.batchPutFeedStatuses(followerAliases, newStatus);
-	}
 
-	private async getAllFollowerAliases(authorAlias: string): Promise<string[]> {
-		const allFollowers: string[] = [];
-		let lastFollowerAlias: string | null = null;
-		let hasMore = true;
-
-		while (hasMore) {
-			const [followerAliases, pageHasMore] = await this.followDao.listFollowerAliases(authorAlias, 100, lastFollowerAlias);
-			allFollowers.push(...followerAliases);
-			hasMore = pageHasMore;
-			if (followerAliases.length > 0) {
-				lastFollowerAlias = followerAliases[followerAliases.length - 1] ?? null;
-			} else {
-				lastFollowerAlias = null;
-			}
+		const messageBody = JSON.stringify({
+			authorAlias,
+			statusJson: newStatus.toJson(),
+		});
+		try {
+			await this.sqsClient.send(
+				new SendMessageCommand({
+					QueueUrl: AppConfig.postStatusQueueUrl,
+					MessageBody: messageBody,
+				}),
+			);
+		} catch {
+			throw new Error("internal-server-error: failed to queue status for feed updates");
 		}
-
-		return allFollowers;
 	}
 }
