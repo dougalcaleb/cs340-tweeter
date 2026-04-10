@@ -6,6 +6,8 @@ export type UserItem = {
 	last_name: string;
 	image_url: string;
 	password_hash?: string;
+	follower_count?: number;
+	followee_count?: number;
 };
 
 export type StatusItem = {
@@ -24,7 +26,7 @@ export type FeedItem = StatusItem & {
 };
 
 export const toUser = (item: UserItem): User => {
-	return new User(item.first_name, item.last_name, item.alias, item.image_url);
+	return new User(item.first_name, item.last_name, item.alias, item.image_url, item.follower_count ?? 0, item.followee_count ?? 0);
 };
 
 export const toStatusFromStatusItem = (item: StatusItem): Status => {

@@ -44,12 +44,22 @@ export class FollowService {
 
 	public async getFollowersCount(authToken: string, userAlias: string): Promise<number> {
 		await this.authorizationService.requireAuthorization(authToken);
-		return this.followDao.getFollowerCount(userAlias);
+		const user = await this.userDao.getUserByAlias(userAlias);
+		if (!user) {
+			throw new Error("bad-request: user does not exist");
+		}
+
+		return user.followerCount;
 	}
 
 	public async getFolloweesCount(authToken: string, userAlias: string): Promise<number> {
 		await this.authorizationService.requireAuthorization(authToken);
-		return this.followDao.getFolloweeCount(userAlias);
+		const user = await this.userDao.getUserByAlias(userAlias);
+		if (!user) {
+			throw new Error("bad-request: user does not exist");
+		}
+
+		return user.followeeCount;
 	}
 
 	public async follow(authToken: string, userToFollow: User): Promise<void> {
@@ -68,6 +78,8 @@ export class FollowService {
 		}
 
 		await this.followDao.putFollow(followerAlias, userToFollow.alias);
+		await this.userDao.incrementFollowerCount(userToFollow.alias);
+		await this.userDao.incrementFolloweeCount(followerAlias);
 	}
 
 	public async unfollow(authToken: string, userToUnfollow: User): Promise<void> {
@@ -77,5 +89,7 @@ export class FollowService {
 		}
 
 		await this.followDao.deleteFollow(followerAlias, userToUnfollow.alias);
+		await this.userDao.decrementFollowerCount(userToUnfollow.alias);
+		await this.userDao.decrementFolloweeCount(followerAlias);
 	}
 }

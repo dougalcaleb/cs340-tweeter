@@ -1,4 +1,4 @@
-import {BatchGetCommand, GetCommand, PutCommand} from "@aws-sdk/lib-dynamodb";
+import {BatchGetCommand, GetCommand, PutCommand, UpdateCommand} from "@aws-sdk/lib-dynamodb";
 import {User} from "tweeter-shared";
 import {AppConfig} from "../../config/AppConfig";
 import {UserCredentialsRecord, UserDao} from "../interfaces/UserDao";
@@ -51,6 +51,8 @@ export class DynamoUserDao implements UserDao {
 					last_name: user.lastName,
 					image_url: user.imageUrl,
 					password_hash: passwordHash,
+					follower_count: 0,
+					followee_count: 0,
 				},
 				ConditionExpression: "attribute_not_exists(alias)",
 			}),
@@ -80,5 +82,44 @@ export class DynamoUserDao implements UserDao {
 		}
 
 		return aliases.map((alias) => byAlias.get(alias)).filter((user): user is User => user !== undefined);
+	}
+
+	public async incrementFollowerCount(alias: string): Promise<void> {
+		await this.updateCount(alias, "follower_count", 1);
+	}
+
+	public async decrementFollowerCount(alias: string): Promise<void> {
+		await this.updateCount(alias, "follower_count", -1);
+	}
+
+	public async incrementFolloweeCount(alias: string): Promise<void> {
+		await this.updateCount(alias, "followee_count", 1);
+	}
+
+	public async decrementFolloweeCount(alias: string): Promise<void> {
+		await this.updateCount(alias, "followee_count", -1);
+	}
+
+	private async updateCount(alias: string, attributeName: "follower_count" | "followee_count", delta: number): Promise<void> {
+		const updateExpression = delta < 0
+			? `SET ${attributeName} = if_not_exists(${attributeName}, :zero) + :delta`
+			: `ADD ${attributeName} :delta`;
+		const conditionExpression = delta < 0
+			? `attribute_exists(alias) AND if_not_exists(${attributeName}, :zero) >= :minCurrent`
+			: "attribute_exists(alias)";
+
+		await dynamoDocClient.send(
+			new UpdateCommand({
+				TableName: AppConfig.userTableName,
+				Key: {alias},
+				UpdateExpression: updateExpression,
+				ConditionExpression: conditionExpression,
+				ExpressionAttributeValues: {
+					":delta": delta,
+					":zero": 0,
+					":minCurrent": Math.abs(delta),
+				},
+			}),
+		);
 	}
 }
