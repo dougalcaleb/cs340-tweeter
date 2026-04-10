@@ -49,6 +49,7 @@ jobs:
       - name: Set up Lambda layer
         working-directory: tweeter-server
         run: |
+          npm prune --omit=dev
           mkdir -p layer/nodejs
           # -L dereferences symlinks so local file deps (like tweeter-shared) are copied as real files.
           cp -rL node_modules layer/nodejs/
