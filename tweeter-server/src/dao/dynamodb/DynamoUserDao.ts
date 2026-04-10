@@ -107,6 +107,15 @@ export class DynamoUserDao implements UserDao {
 		const conditionExpression = delta < 0
 			? `attribute_exists(alias) AND if_not_exists(${attributeName}, :zero) >= :minCurrent`
 			: "attribute_exists(alias)";
+		const expressionAttributeValues = delta < 0
+			? {
+				":delta": delta,
+				":zero": 0,
+				":minCurrent": Math.abs(delta),
+			}
+			: {
+				":delta": delta,
+			};
 
 		await dynamoDocClient.send(
 			new UpdateCommand({
@@ -114,11 +123,7 @@ export class DynamoUserDao implements UserDao {
 				Key: {alias},
 				UpdateExpression: updateExpression,
 				ConditionExpression: conditionExpression,
-				ExpressionAttributeValues: {
-					":delta": delta,
-					":zero": 0,
-					":minCurrent": Math.abs(delta),
-				},
+				ExpressionAttributeValues: expressionAttributeValues,
 			}),
 		);
 	}
