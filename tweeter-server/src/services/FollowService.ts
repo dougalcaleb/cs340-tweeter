@@ -77,7 +77,16 @@ export class FollowService {
 			throw new Error("bad-request: followee does not exist");
 		}
 
-		await this.followDao.putFollow(followerAlias, userToFollow.alias);
+		try {
+			await this.followDao.putFollow(followerAlias, userToFollow.alias);
+		} catch (error) {
+			if (this.isConditionalCheckFailure(error)) {
+				throw new Error("bad-request: already following user");
+			}
+
+			throw error;
+		}
+
 		await this.userDao.incrementFollowerCount(userToFollow.alias);
 		await this.userDao.incrementFolloweeCount(followerAlias);
 	}
@@ -88,8 +97,27 @@ export class FollowService {
 			throw new Error("bad-request: followee alias is required");
 		}
 
+		const followee = await this.userDao.getUserByAlias(userToUnfollow.alias);
+		if (!followee) {
+			throw new Error("bad-request: followee does not exist");
+		}
+
+		const isCurrentlyFollowing = await this.followDao.isFollower(followerAlias, userToUnfollow.alias);
+		if (!isCurrentlyFollowing) {
+			throw new Error("bad-request: follow relationship does not exist");
+		}
+
 		await this.followDao.deleteFollow(followerAlias, userToUnfollow.alias);
 		await this.userDao.decrementFollowerCount(userToUnfollow.alias);
 		await this.userDao.decrementFolloweeCount(followerAlias);
+	}
+
+	private isConditionalCheckFailure(error: unknown): boolean {
+		if (typeof error !== "object" || error == null) {
+			return false;
+		}
+
+		const maybeError = error as {name?: string};
+		return maybeError.name === "ConditionalCheckFailedException";
 	}
 }
