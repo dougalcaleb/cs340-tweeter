@@ -529,12 +529,13 @@ Resources:
       Handler: handlers/statuses/UpdateFeedsHandler.updateFeedsHandler
       Policies: *commonPolicies
       Timeout: 60
+      ReservedConcurrentExecutions: 1
       Events:
         UpdateFeedQueueEvent:
           Type: SQS
           Properties:
             Queue: !GetAtt tweeterUpdateFeedQueue.Arn
-            BatchSize: 10
+            BatchSize: 1
 
   tweeterPostStatusQueue:
     Type: AWS::SQS::Queue
@@ -583,7 +584,10 @@ Resources:
       KeySchema:
         - AttributeName: alias
           KeyType: HASH
-      BillingMode: PAY_PER_REQUEST
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
 
   tweeterAuthTokenTable:
     Type: AWS::DynamoDB::Table
@@ -597,7 +601,10 @@ Resources:
       KeySchema:
         - AttributeName: token
           KeyType: HASH
-      BillingMode: PAY_PER_REQUEST
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
       GlobalSecondaryIndexes:
         - IndexName: tweeter-auth-token-alias-index
           KeySchema:
@@ -605,6 +612,9 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
       TimeToLiveSpecification:
         AttributeName: expires_at
         Enabled: true
@@ -623,7 +633,10 @@ Resources:
           KeyType: HASH
         - AttributeName: followee_alias
           KeyType: RANGE
-      BillingMode: PAY_PER_REQUEST
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
       GlobalSecondaryIndexes:
         - IndexName: tweeter-follow-followee-index
           KeySchema:
@@ -633,6 +646,9 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
 
   tweeterStatusTable:
     Type: AWS::DynamoDB::Table
@@ -648,7 +664,10 @@ Resources:
           KeyType: HASH
         - AttributeName: created_at
           KeyType: RANGE
-      BillingMode: PAY_PER_REQUEST
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
 
   tweeterFeedTable:
     Type: AWS::DynamoDB::Table
@@ -666,7 +685,10 @@ Resources:
           KeyType: HASH
         - AttributeName: created_at
           KeyType: RANGE
-      BillingMode: PAY_PER_REQUEST
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 20
+        WriteCapacityUnits: 100
       GlobalSecondaryIndexes:
         - IndexName: tweeter-feed-originator-index
           KeySchema:
@@ -676,6 +698,9 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
 
 Outputs:
   tweeterApiId:

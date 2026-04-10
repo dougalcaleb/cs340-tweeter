@@ -15,8 +15,9 @@ type UpdateFeedMessageBody = {
 	statusJson: string;
 };
 
-const FOLLOWERS_PAGE_SIZE = 500;
+const FOLLOWERS_PAGE_SIZE = 100;
 const SQS_BATCH_SIZE = 10;
+const TARGET_FEED_WRITES_PER_SECOND = 90;
 
 export class FeedProcessingService {
 	private readonly followDao: FollowDao;
@@ -124,6 +125,10 @@ export class FeedProcessingService {
 		}
 
 		await this.feedDao.batchPutFeedStatuses(recipientAliases, status);
+		const pacingDelayMs = Math.ceil((recipientAliases.length / TARGET_FEED_WRITES_PER_SECOND) * 1000);
+		if (pacingDelayMs > 0) {
+			await this.sleep(pacingDelayMs);
+		}
 	}
 
 	private async flushQueueMessageBatch(messageBatch: SendMessageBatchRequestEntry[]): Promise<void> {
@@ -137,5 +142,9 @@ export class FeedProcessingService {
 		if ((output.Failed?.length ?? 0) > 0) {
 			throw new Error("internal-server-error: failed to queue one or more update feed messages");
 		}
+	}
+
+	private async sleep(delayMs: number): Promise<void> {
+		await new Promise((resolve) => setTimeout(resolve, delayMs));
 	}
 }
