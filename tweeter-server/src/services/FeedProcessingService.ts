@@ -16,8 +16,8 @@ type UpdateFeedMessageBody = {
 };
 
 const FOLLOWERS_PAGE_SIZE = 100;
-const SQS_BATCH_SIZE = 10;
-const TARGET_FEED_WRITES_PER_SECOND = 90;
+const FEED_BATCH_SIZE = 25; // DynamoDB BatchWriteItem batch size
+const TARGET_FEED_WRITES_PER_SECOND = 83; // 25 WCU per batch * 3.33 batches/sec = 83 WCU/sec
 
 export class FeedProcessingService {
 	private readonly followDao: FollowDao;
@@ -91,29 +91,47 @@ export class FeedProcessingService {
 		let hasMore = true;
 		let nextMessageId = 0;
 		let messageBatch: SendMessageBatchRequestEntry[] = [];
+		let feedBatch: string[] = [];
 
 		while (hasMore) {
 			const [followerAliases, pageHasMore] = await this.followDao.listFollowerAliases(authorAlias, FOLLOWERS_PAGE_SIZE, lastFollowerAlias);
 			hasMore = pageHasMore;
 
 			if (followerAliases.length > 0) {
-				messageBatch.push({
-					Id: `${nextMessageId}`,
-					MessageBody: FeedProcessingService.buildUpdateFeedMessage(followerAliases, status),
-				});
-				nextMessageId += 1;
-
 				lastFollowerAlias = followerAliases[followerAliases.length - 1] ?? null;
+
+				// Sub-batch followers into FEED_BATCH_SIZE chunks for consistent pacing
+				for (const followerAlias of followerAliases) {
+					feedBatch.push(followerAlias);
+
+					if (feedBatch.length === FEED_BATCH_SIZE) {
+						messageBatch.push({
+							Id: `${nextMessageId}`,
+							MessageBody: FeedProcessingService.buildUpdateFeedMessage(feedBatch, status),
+						});
+						nextMessageId += 1;
+						feedBatch = [];
+
+						if (messageBatch.length === 10) {
+							await this.flushQueueMessageBatch(messageBatch);
+							messageBatch = [];
+						}
+					}
+				}
 			} else {
 				lastFollowerAlias = null;
 			}
-
-			if (messageBatch.length >= SQS_BATCH_SIZE) {
-				await this.flushQueueMessageBatch(messageBatch);
-				messageBatch = [];
-			}
 		}
 
+		// Flush any remaining partial feeds batch
+		if (feedBatch.length > 0) {
+			messageBatch.push({
+				Id: `${nextMessageId}`,
+				MessageBody: FeedProcessingService.buildUpdateFeedMessage(feedBatch, status),
+			});
+		}
+
+		// Flush any remaining SQS batch
 		if (messageBatch.length > 0) {
 			await this.flushQueueMessageBatch(messageBatch);
 		}
