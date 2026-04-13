@@ -535,7 +535,7 @@ Resources:
           Type: SQS
           Properties:
             Queue: !GetAtt tweeterUpdateFeedQueue.Arn
-            BatchSize: 1
+            BatchSize: 2
 
   tweeterPostStatusQueue:
     Type: AWS::SQS::Queue

@@ -17,7 +17,7 @@ type UpdateFeedMessageBody = {
 
 const FOLLOWERS_PAGE_SIZE = 100;
 const FEED_BATCH_SIZE = 25; // DynamoDB BatchWriteItem batch size
-const TARGET_FEED_WRITES_PER_SECOND = 83; // 25 WCU per batch * 3.33 batches/sec = 83 WCU/sec
+const TARGET_FEED_WRITES_PER_SECOND = 167; // 150ms pacing delay per 25-item batch; 200 Lambda invocations * 600ms each = 120 seconds
 
 export class FeedProcessingService {
 	private readonly followDao: FollowDao;
